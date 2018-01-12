@@ -51,12 +51,11 @@ def main():
     else:
         if get_config().API_INTERFACE == 'mudbjson':
             thread = MainThread(db_transfer.MuJsonTransfer)
-        elif get_config().API_INTERFACE == 'sspanelv2':
-            thread = MainThread(db_transfer.DbTransfer)
         elif get_config().API_INTERFACE == 'ehcomod':
             thread = MainThread(db_transfer.EhcoDbTransfer)
         else:
-            thread = MainThread(db_transfer.Dbv3Transfer)
+            print('请在userapi.py里设置正确的接口模式!')
+            thread.stop()
         thread.start()
         try:
             while thread.is_alive():
