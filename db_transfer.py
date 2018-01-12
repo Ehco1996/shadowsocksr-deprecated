@@ -86,6 +86,7 @@ class TransferBase(object):
     def del_server_out_of_bound_safe(self, last_rows, rows):
         # 停止超流量的服务
         # 启动没超流量的服务
+        # 停止等级不足的服务
         try:
             switchrule = importloader.load('switchrule')
         except Exception as e:
@@ -495,11 +496,7 @@ class EhcoDbTransfer(DbTransfer):
         super(EhcoDbTransfer, self).__init__()
         self.update_node_state = True if get_config().API_INTERFACE == 'ehcomod' else False
         if self.update_node_state:
-            self.key_list += ['id']
-        self.key_list += ['method']
-        if self.update_node_state:
             self.ss_node_info_name = 'ss_node_info_log'
-            self.key_list += ['obfs', 'protocol']
         self.start_time = time.time()
 
     def update_all_user(self, dt_transfer):
@@ -600,6 +597,7 @@ class EhcoDbTransfer(DbTransfer):
         return update_transfer
 
     def pull_db_users(self, conn):
+        '''拉取所有符合要求的用户'''
         try:
             switchrule = importloader.load('switchrule')
             keys = switchrule.getKeys(self.key_list)
@@ -609,7 +607,8 @@ class EhcoDbTransfer(DbTransfer):
         cur = conn.cursor()
 
         if self.update_node_state:
-            node_info_keys = ['traffic_rate']
+                        # 增加节点等级字段
+            node_info_keys = ['traffic_rate', 'level', ]
             try:
                 cur.execute("SELECT " + ','.join(node_info_keys) +
                             " FROM ss_node where `id`='" + str(self.cfg["node_id"]) + "'")
@@ -623,7 +622,7 @@ class EhcoDbTransfer(DbTransfer):
                 cur.close()
                 conn.commit()
                 logging.warn(
-                    'None result when select node info from ss_node in db, maybe you set the incorrect node id')
+                    '没有查询到满足要求的user，请检查自己的node_id!')
                 return rows
             cur.close()
 
@@ -635,7 +634,12 @@ class EhcoDbTransfer(DbTransfer):
         cur = conn.cursor()
         try:
             rows = []
-            cur.execute("SELECT " + ','.join(keys) + " FROM user")
+            # 增加用户等级判断
+            # 只适用于django-sspanel
+            sql = "SELECT " + \
+                ','.join(keys) + " FROM user WHERE `level` >=" + \
+                str(node_info_dict['level'])
+            cur.execute(sql)
             for r in cur.fetchall():
                 d = {}
                 for column in range(len(keys)):

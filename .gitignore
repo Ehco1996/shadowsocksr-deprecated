@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# local test file
+user-config.json
+user-config.json
+userapiconfig.py
+usermysql.json
