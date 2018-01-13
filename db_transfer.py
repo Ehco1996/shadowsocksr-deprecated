@@ -573,6 +573,7 @@ class EhcoDbTransfer(DbTransfer):
 
         if self.update_node_state:
             try:
+                # 节点在线人数
                 cur = conn.cursor()
                 try:
                     cur.execute("INSERT INTO `ss_node_online_log` (`id`, `node_id`, `online_user`, `log_time`) VALUES (NULL, '" +
@@ -581,6 +582,7 @@ class EhcoDbTransfer(DbTransfer):
                     logging.error(e)
                 cur.close()
 
+                # 节点负载
                 cur = conn.cursor()
                 try:
                     cur.execute("INSERT INTO `" + self.ss_node_info_name + "` (`id`, `node_id`, `uptime`, `load`, `log_time`) VALUES (NULL, '" +
@@ -602,13 +604,14 @@ class EhcoDbTransfer(DbTransfer):
             switchrule = importloader.load('switchrule')
             keys = switchrule.getKeys(self.key_list)
         except Exception as e:
-            keys = self.key_list
+            keys = ['port', 'u', 'd',
+                    'transfer_enable', 'passwd', 'enable', 'method', 'obfs', 'protocol']
 
+        # 节点信息的获取
         cur = conn.cursor()
-
         if self.update_node_state:
-                        # 增加节点等级字段
-            node_info_keys = ['traffic_rate', 'level', ]
+            # 增加节点等级字段
+            node_info_keys = ['traffic_rate', 'level']
             try:
                 cur.execute("SELECT " + ','.join(node_info_keys) +
                             " FROM ss_node where `id`='" + str(self.cfg["node_id"]) + "'")
@@ -626,6 +629,7 @@ class EhcoDbTransfer(DbTransfer):
                 return rows
             cur.close()
 
+            # 流量比例设置
             node_info_dict = {}
             for column in range(len(nodeinfo)):
                 node_info_dict[node_info_keys[column]] = nodeinfo[column]
@@ -652,7 +656,10 @@ class EhcoDbTransfer(DbTransfer):
 
     def load(self):
         import os
-        return os.popen("cat /proc/loadavg | awk '{ print $1\" \"$2\" \"$3 }'").readlines()[0]
+        try:
+            return os.popen("cat /proc/loadavg | awk '{ print $1\" \"$2\" \"$3 }'").readlines()[0]
+        except:
+            return '系统不支持负载检测'
 
     def uptime(self):
         return time.time() - self.start_time
