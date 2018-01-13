@@ -105,3 +105,6 @@ user-config.json
 user-config.json
 userapiconfig.py
 usermysql.json
+.vscode/launch.json
+.vscode/settings.json
+.idea/

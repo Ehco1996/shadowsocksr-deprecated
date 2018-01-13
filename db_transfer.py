@@ -494,10 +494,9 @@ class DbTransfer(TransferBase):
 class EhcoDbTransfer(DbTransfer):
     def __init__(self):
         super(EhcoDbTransfer, self).__init__()
-        self.update_node_state = True if get_config().API_INTERFACE == 'ehcomod' else False
-        if self.update_node_state:
-            self.ss_node_info_name = 'ss_node_info_log'
+        self.ss_node_info_name = 'ss_node_info_log'
         self.start_time = time.time()
+        self.key_list += ['id', 'method', 'obfs', 'protocol']
 
     def update_all_user(self, dt_transfer):
         import cymysql
@@ -525,6 +524,7 @@ class EhcoDbTransfer(DbTransfer):
                                    db=self.cfg["db"], charset='utf8')
         conn.autocommit(True)
 
+        # 流量记录统计部分
         for id in dt_transfer.keys():
             transfer = dt_transfer[id]
             bandwidth_thistime = bandwidth_thistime + transfer[0] + transfer[1]
@@ -542,17 +542,17 @@ class EhcoDbTransfer(DbTransfer):
                 id, int(transfer[1] * self.cfg["transfer_mul"]))
             update_transfer[id] = transfer
 
-            if self.update_node_state:
-                if id in self.port_uid_table:
-                    cur = conn.cursor()
-                    try:
-                        if id in self.port_uid_table:
-                            sql = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`,`log_date`) VALUES (NULL,{},{},{},{},'{}','{}',unix_timestamp(),'{}');".format(str(self.port_uid_table[id]), str(transfer[0]), str(transfer[1]), str(self.cfg["node_id"]), str(self.cfg["transfer_mul"]),
-                                                                                                                                                                                                                      self.traffic_format((transfer[0] + transfer[1]) * self.cfg["transfer_mul"]), str(datetime.now()))
-                            cur.execute(sql)
-                    except:
-                        logging.warn('no `user_traffic_log` in db')
-                    cur.close()
+            # 增加线路状态上报
+            if id in self.port_uid_table:
+                cur = conn.cursor()
+                try:
+                    if id in self.port_uid_table:
+                        sql = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`,`log_date`) VALUES (NULL,{},{},{},{},'{}','{}',unix_timestamp(),'{}');".format(str(self.port_uid_table[id]), str(transfer[0]), str(transfer[1]), str(self.cfg["node_id"]), str(self.cfg["transfer_mul"]),
+                                                                                                                                                                                                                  self.traffic_format((transfer[0] + transfer[1]) * self.cfg["transfer_mul"]), str(datetime.now()))
+                        cur.execute(sql)
+                except:
+                    logging.warn('no `user_traffic_log` in db')
+                cur.close()
 
             if query_sub_in is not None:
                 query_sub_in += ',%s' % id
@@ -571,29 +571,28 @@ class EhcoDbTransfer(DbTransfer):
                 logging.error(e)
             cur.close()
 
-        if self.update_node_state:
+        try:
+            # 节点在线人数
+            cur = conn.cursor()
             try:
-                # 节点在线人数
-                cur = conn.cursor()
-                try:
-                    cur.execute("INSERT INTO `ss_node_online_log` (`id`, `node_id`, `online_user`, `log_time`) VALUES (NULL, '" +
-                                str(self.cfg["node_id"]) + "', '" + str(alive_user_count) + "', unix_timestamp()); ")
-                except Exception as e:
-                    logging.error(e)
-                cur.close()
+                cur.execute("INSERT INTO `ss_node_online_log` (`id`, `node_id`, `online_user`, `log_time`) VALUES (NULL, '" +
+                            str(self.cfg["node_id"]) + "', '" + str(alive_user_count) + "', unix_timestamp()); ")
+            except Exception as e:
+                logging.error(e)
+            cur.close()
 
-                # 节点负载
-                cur = conn.cursor()
-                try:
-                    cur.execute("INSERT INTO `" + self.ss_node_info_name + "` (`id`, `node_id`, `uptime`, `load`, `log_time`) VALUES (NULL, '" +
-                                str(self.cfg["node_id"]) + "', '" + str(self.uptime()) + "', '" +
-                                str(self.load()) + "', unix_timestamp()); ")
-                except Exception as e:
-                    logging.error(e)
-                cur.close()
-            except:
-                logging.warn(
-                    'no `ss_node_online_log` or `" + self.ss_node_info_name + "` in db')
+            # 节点负载
+            cur = conn.cursor()
+            try:
+                cur.execute("INSERT INTO `" + self.ss_node_info_name + "` (`id`, `node_id`, `uptime`, `load`, `log_time`) VALUES (NULL, '" +
+                            str(self.cfg["node_id"]) + "', '" + str(self.uptime()) + "', '" +
+                            str(self.load()) + "', unix_timestamp()); ")
+            except Exception as e:
+                logging.error(e)
+            cur.close()
+        except:
+            logging.warn(
+                'no `ss_node_online_log` or `" + self.ss_node_info_name + "` in db')
 
         conn.close()
         return update_transfer
@@ -604,36 +603,35 @@ class EhcoDbTransfer(DbTransfer):
             switchrule = importloader.load('switchrule')
             keys = switchrule.getKeys(self.key_list)
         except Exception as e:
-            keys = ['port', 'u', 'd',
-                    'transfer_enable', 'passwd', 'enable', 'method', 'obfs', 'protocol']
+            keys = self.key_list
 
         # 节点信息的获取
         cur = conn.cursor()
-        if self.update_node_state:
-            # 增加节点等级字段
-            node_info_keys = ['traffic_rate', 'level']
-            try:
-                cur.execute("SELECT " + ','.join(node_info_keys) +
-                            " FROM ss_node where `id`='" + str(self.cfg["node_id"]) + "'")
-                nodeinfo = cur.fetchone()
-            except Exception as e:
-                logging.error(e)
-                nodeinfo = None
+        # 增加节点等级字段
+        node_info_keys = ['traffic_rate', 'level']
+        try:
+            sql = "SELECT " + \
+                ','.join(node_info_keys) + " FROM ss_node where `id`='" + \
+                str(self.cfg["node_id"]) + "'"
+            cur.execute(sql)
+            nodeinfo = cur.fetchone()
+        except Exception as e:
+            logging.error(e)
+            nodeinfo = None
 
-            if nodeinfo == None:
-                rows = []
-                cur.close()
-                conn.commit()
-                logging.warn(
-                    '没有查询到满足要求的user，请检查自己的node_id!')
-                return rows
+        if nodeinfo == None:
+            rows = []
             cur.close()
-
-            # 流量比例设置
-            node_info_dict = {}
-            for column in range(len(nodeinfo)):
-                node_info_dict[node_info_keys[column]] = nodeinfo[column]
-            self.cfg['transfer_mul'] = float(node_info_dict['traffic_rate'])
+            conn.commit()
+            logging.warn(
+                '没有查询到满足要求的user，请检查自己的node_id!')
+            return rows
+        cur.close()
+        # 流量比例设置
+        node_info_dict = {}
+        for column in range(len(nodeinfo)):
+            node_info_dict[node_info_keys[column]] = nodeinfo[column]
+        self.cfg['transfer_mul'] = float(node_info_dict['traffic_rate'])
 
         cur = conn.cursor()
         try:

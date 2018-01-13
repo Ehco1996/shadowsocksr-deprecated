@@ -2,8 +2,6 @@ from configloader import load_config, get_config
 
 
 def getKeys(key_list):
-    if get_config().API_INTERFACE == 'ehcomod':
-        key_list += ['method', 'obfs', 'protocol']
     return key_list
 # return key_list + ['plan'] # append the column name 'plan'
 
