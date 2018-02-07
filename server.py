@@ -55,7 +55,7 @@ def main():
             thread = MainThread(db_transfer.EhcoDbTransfer)
         else:
             print('请在userapi.py里设置正确的接口模式!')
-            thread.stop()
+            sys.exit()
         thread.start()
         try:
             while thread.is_alive():
