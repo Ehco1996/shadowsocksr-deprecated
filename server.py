@@ -27,6 +27,8 @@ if __name__ == '__main__':
 
 import server_pool
 import db_transfer
+import web_transfer
+
 from shadowsocks import shell
 from configloader import load_config, get_config
 
@@ -53,6 +55,8 @@ def main():
             thread = MainThread(db_transfer.MuJsonTransfer)
         elif get_config().API_INTERFACE == 'ehcomod':
             thread = MainThread(db_transfer.EhcoDbTransfer)
+        elif get_config().API_INTERFACE == 'webapi':
+            thread = MainThread(web_transfer.WebTransfer)
         else:
             print('请在userapi.py里设置正确的接口模式!')
             sys.exit()
