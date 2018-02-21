@@ -320,6 +320,8 @@ class WebTransfer(object):
         # 获取节点流量比例信息
         nodeinfo = api.getApi('/nodes/{}'.format(node_id))
         if not nodeinfo:
+            logging.warn(
+                '没有查询到满足要求的节点，请检查自己的node_id!,或者该节点流量已经用光')
             rows = []
             return rows
 
