@@ -362,6 +362,13 @@ class WebTransfer(object):
                      'data': data})
         api.close()
 
+        # 节点在线ip上报
+        # node_online_ip = ServerPool.get_instance().get_servers_ip_list()
+        # ip_data = {}
+        # for k, v in node_online_ip.items():
+        #     ip_data[self.port_uid_table[k]] = v
+        # print(ip_data)
+
         # # 节点状态上报
         # self.api.postApi(
         #     '/nodes/load',
