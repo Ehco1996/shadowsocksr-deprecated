@@ -348,7 +348,6 @@ class WebTransfer(object):
         update_transfer = {}
 
         # 用户流量上报
-        api = EhcoApi()
         data = []
         for id in dt_transfer.keys():
             if dt_transfer[id][0] == 0 and dt_transfer[id][1] == 0:
@@ -356,18 +355,24 @@ class WebTransfer(object):
             data.append({'u': dt_transfer[id][0], 'd': dt_transfer[
                         id][1], 'user_id': self.port_uid_table[id]})
             update_transfer[id] = dt_transfer[id]
-        api.postApi('/traffic/upload',
-                    # 暂存node_id字段，方便以后对节点流量管理
-                    {'node_id': node_id,
-                     'data': data})
-        api.close()
+        if len(data)>0:
+            api = EhcoApi()        
+            api.postApi('/traffic/upload',
+                        {'node_id': node_id,
+                        'data': data})
+            api.close()
 
         # 节点在线ip上报
-        # node_online_ip = ServerPool.get_instance().get_servers_ip_list()
-        # ip_data = {}
-        # for k, v in node_online_ip.items():
-        #     ip_data[self.port_uid_table[k]] = v
-        # print(ip_data)
+        node_online_ip = ServerPool.get_instance().get_servers_ip_list()
+        ip_data = {}
+        for k, v in node_online_ip.items():
+            ip_data[self.port_uid_table[k]] = v
+        if len(ip_data)>0:
+            api = EhcoApi()                
+            api.postApi('/nodes/aliveip',
+                        {'node_id': node_id,
+                        'data': ip_data})
+            api.close()
 
         # # 节点状态上报
         # self.api.postApi(
