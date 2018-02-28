@@ -37,14 +37,15 @@ class EhcoApi(object):
                 data = res.json()
             except Exception:
                 if res:
-                    logging.error("Error data:%s" % (res.text))
+                    logging.error("Error data:{}".format(res.text))
                 return []
 
             if data['ret'] == -1:
-                logging.error("Error data:%s" % (res.text))
-                logging.error("request %s error!wrong ret!" % (uri))
+                logging.error("Error data:{}".format(res.text))
+                logging.error("request {} error!wrong ret!".format(uri))
                 return []
             return data['data']
+
         except Exception:
             import traceback
             trace = traceback.format_exc()
@@ -62,11 +63,11 @@ class EhcoApi(object):
                 data = res.json()
             except Exception:
                 if res:
-                    logging.error("Error data:%s" % (res.text))
+                    logging.error("Error data:{}".format(res.text))
                 return []
             if data['ret'] == -1:
-                logging.error("Error data:%s" % (res.text))
-                logging.error("request %s error!wrong ret!" % (uri))
+                logging.error("Error data:{}".format(res.text))
+                logging.error("request {} error!wrong ret!".format(uri))
                 return []
             return data['data']
         except Exception:
@@ -198,13 +199,13 @@ class WebTransfer(object):
                         cfg[name] = cfg[name].encode('utf-8')
                     except Exception as e:
                         logging.warning(
-                            'encode cfg key "%s" fail, val "%s"' % (name, cfg[name]))
+                            'encode cfg key "{}" fail, val "{}"'.format(name, cfg[name]))
 
             if port not in cur_servers:
                 cur_servers[port] = passwd
             else:
                 logging.error(
-                    'more than one user use the same port [%s]' % (port,))
+                    'more than one user use the same port [{}]'.format(port,))
                 continue
 
             if 'protocol' in cfg and 'protocol_param' in cfg and common.to_str(cfg['protocol']) in obfs.mu_protocol():
@@ -235,7 +236,7 @@ class WebTransfer(object):
                 if ServerPool.get_instance().server_is_run(port) > 0:
                     if cfgchange:
                         logging.info(
-                            'db stop server at port [%s] reason: config changed: %s' % (port, cfg))
+                            'db stop server at port [{}] reason: config changed: {}'.format(port, cfg))
                         ServerPool.get_instance().cb_del_server(port)
                         self.force_update_transfer.add(port)
                         new_servers[port] = (passwd, cfg)
@@ -244,13 +245,14 @@ class WebTransfer(object):
             else:
                 if ServerPool.get_instance().server_is_run(port) > 0:
                     if config['additional_ports_only'] or not allow:
-                        logging.info('db stop server at port [%s]' % (port,))
+                        logging.info(
+                            'db stop server at port [{}]'.format(port,))
                         ServerPool.get_instance().cb_del_server(port)
                         self.force_update_transfer.add(port)
                     else:
                         if cfgchange:
                             logging.info(
-                                'db stop server at port [%s] reason: config changed: %s' % (port, cfg))
+                                'db stop server at port [{}] reason: config changed: {}'.format(port, cfg))
                             ServerPool.get_instance().cb_del_server(port)
                             self.force_update_transfer.add(port)
                             new_servers[port] = (passwd, cfg)
@@ -263,7 +265,7 @@ class WebTransfer(object):
                 pass
             else:
                 logging.info(
-                    'db stop server at port [%s] reason: port not exist' % (row['port']))
+                    'db stop server at port [{}] reason: port not exist'.format(row['port']))
                 ServerPool.get_instance().cb_del_server(row['port'])
                 self.clear_cache(row['port'])
                 if row['port'] in self.port_uid_table:
@@ -277,8 +279,8 @@ class WebTransfer(object):
                 passwd, cfg = new_servers[port]
                 self.new_server(port, passwd, cfg)
 
-        logging.debug('db allow users %s \nmu_servers %s' %
-                      (allow_users, mu_servers))
+        logging.debug('db allow users {} \nmu_servers {}'.format(
+            allow_users, mu_servers))
         for port in mu_servers:
             ServerPool.get_instance().update_mu_users(port, allow_users)
 
@@ -299,7 +301,7 @@ class WebTransfer(object):
             'method', ServerPool.get_instance().config.get('method', 'None'))
         obfs = cfg.get(
             'obfs', ServerPool.get_instance().config.get('obfs', 'plain'))
-        logging.info('db start server at port [%s] pass [%s] protocol [%s] method [%s] obfs [%s]' % (
+        logging.info('db start server at port [{}] pass [{}] protocol [{}] method [{}] obfs [{}]'.format(
             port, passwd, protocol, method, obfs))
         ServerPool.get_instance().new_server(port, cfg)
 
@@ -355,11 +357,11 @@ class WebTransfer(object):
             data.append({'u': dt_transfer[id][0], 'd': dt_transfer[
                         id][1], 'user_id': self.port_uid_table[id]})
             update_transfer[id] = dt_transfer[id]
-        if len(data)>0:
-            api = EhcoApi()        
+        if len(data) > 0:
+            api = EhcoApi()
             api.postApi('/traffic/upload',
                         {'node_id': node_id,
-                        'data': data})
+                         'data': data})
             api.close()
 
         # 节点在线ip上报
@@ -367,11 +369,11 @@ class WebTransfer(object):
         ip_data = {}
         for k, v in node_online_ip.items():
             ip_data[self.port_uid_table[k]] = v
-        if len(ip_data)>0:
-            api = EhcoApi()                
+        if len(ip_data) > 0:
+            api = EhcoApi()
             api.postApi('/nodes/aliveip',
                         {'node_id': node_id,
-                        'data': ip_data})
+                         'data': ip_data})
             api.close()
 
         # # 节点状态上报
@@ -468,14 +470,3 @@ class WebTransfer(object):
     def thread_db_stop():
         global db_instance
         db_instance.event.set()
-
-
-# test:
-# api = EhcoApi()
-# post_data = {
-#     'node_Id': 1,
-#     'data': [{'u': 17774, 'd': 25797, 'user_id': 1}]
-# }
-
-# res = api.postApi('/traffic/upload', post_data)
-# print(res)
