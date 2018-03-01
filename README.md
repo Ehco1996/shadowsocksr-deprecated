@@ -4,7 +4,7 @@ ssr mod version for django-sspanel
 
 ###版本说明
 
-该版ssr在原版的基础上加入了点小功能：
+改版ssr在原版的基础上加了点小功能
 并且只对django——sspanel做功能支持
 
 >django-sspanel 是我开发的面板  
@@ -20,9 +20,8 @@ ssr mod version for django-sspanel
 
 ### 安装教程
 
-**前置依赖：requests**
 
-* 安装pip
+* 安装依赖
 
 ```sh
 wget https://bootstrap.pypa.io/get-pip.py
@@ -43,19 +42,18 @@ bash initcfg.sh
 nano userapiconfig.py
 
 API_INTERFACE 的选择
-    ehcomod:数据直连，选择使用这个需要单独配置 usermysql.json 里面就是你主站数据库的配置
-    webapi： 走http协议的web接口 选择使用这个需要配置 web token
+    ehcomod  数据直连，选择使用这个需要单独配置 usermysql.json 里面就是你主站数据库的配置
+    webapi   走http协议的web接口 选择使用这个需要配置 web token
 
 Token 的配置
     这里要填写你django-sspanel里 admin user 的用户名和对应的端口
 
 WEBAPI_URL 设置
-    api请求的地址 应为你的域名+api/
-    例如： https://www.xxx.com/api
+    api请求的地址 应为你的域名/api/
+    例如: https:www.xxx.com/api
 
 NODE_ID
-    节点id
-    注意每个后端节点都必须拥有单独的ID
+    节点id 必须唯一
 
 UPDATE_TIME = 75
     节点上报数据的时间间隔,60~75为佳
@@ -78,7 +76,7 @@ try:
 except:
     TOKEN = base64.b64encode(
         bytes('{}+{}'.format(USERNAME, PORT))).decode()
-WEBAPI_URL = 'https://www.xxx.com/api'
+WEBAPI_URL = 'https:www.xxx.com/api'
 NODE_ID = 13
 # Mysql
 MYSQL_CONFIG = 'usermysql.json'
