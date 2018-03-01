@@ -2,7 +2,7 @@
 ssr mod version for django-sspanel
 
 
-###版本说明
+### 版本说明
 
 改版ssr在原版的基础上加了点小功能
 并且只对django——sspanel进行支持和维护
@@ -42,7 +42,7 @@ bash initcfg.sh
 nano userapiconfig.py
 
 API_INTERFACE 的选择
-    ehcomod  数据直连，选择使用这个需要单独配置 usermysql.json 里面就是你主站数据库的配置
+    ehcomod  数据直连，选择使用这个需要单独配置 usermysql.json 里面就是你主站数据库的配置
     webapi   走http协议的web接口 选择使用这个需要配置 web token
 
 Token 的配置
@@ -59,7 +59,7 @@ UPDATE_TIME = 75
     节点上报数据的时间间隔,60~75为佳
 ```
 
-**下面是默认配置（走webapi）**
+**下面是默认配置（走webapi）**
 
 ```python
 import base64
