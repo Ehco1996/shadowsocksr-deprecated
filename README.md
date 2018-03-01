@@ -5,12 +5,12 @@ ssr mod version for django-sspanel
 ###版本说明
 
 改版ssr在原版的基础上加了点小功能
-并且只对django——sspanel做功能支持
+并且只对django——sspanel进行支持和维护
 
 >django-sspanel 是我开发的面板  
 >项目地址：https://github.com/Ehco1996/django-sspanel
 
-* 流量日志上报
+* 节点流量日志上报
 * 节点在线ip统计
 * webapi mode  （推荐）
 * ehcomod mode （直连mysql）
