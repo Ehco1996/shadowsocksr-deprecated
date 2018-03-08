@@ -46,14 +46,14 @@ bash initcfg.sh
 nano userapiconfig.py
 
 API_INTERFACE 的选择
-    ehcomod  数据直连，选择使用这个需要单独配置 usermysql.json 里面就是你主站数据库的配置
+    ehcomod  数据直连，选择使用这个需要单独配置 usermysql.json 里面就是你主站数据库的配置
     webapi   走http协议的web接口 选择使用这个需要配置 web token
 
 Token 的配置
     这里要填写你django-sspanel里 admin user 的用户名和对应的端口
 
 WEBAPI_URL 设置
-    api请求的地址 应为你的域名/api/
+    api请求的地址 应为你的域名/api/
     例如: https:www.xxx.com/api
 
 NODE_ID
