@@ -33,16 +33,17 @@ class EhcoApi(object):
             payload = {'token': self.TOKEN}
             url = self.WEBAPI_URL+uri
             res = self.session_pool.get(url, params=payload, timeout=10)
+            time.sleep(0.005)
             try:
                 data = res.json()
             except Exception:
                 if res:
-                    logging.error("Error data:{}".format(res.text))
+                    logging.error('接口返回值格式错误: {}'.format(res.text))
                 return []
 
             if data['ret'] == -1:
-                logging.error("Error data:{}".format(res.text))
-                logging.error("request {} error!wrong ret!".format(uri))
+                logging.error("接口返回值不正确:{}".format(res.text))
+                logging.error("请求头：{}".format(uri))
                 return []
             return data['data']
 
@@ -50,7 +51,8 @@ class EhcoApi(object):
             import traceback
             trace = traceback.format_exc()
             logging.error(trace)
-            raise Exception('network issue or server error!')
+            raise Exception(
+                '网络问题，请保证api接口地址设置正确！当前接口地址：{}'.format(self.WEBAPI_URL))
 
     def postApi(self, uri, raw_data={}):
         res = None
@@ -59,22 +61,24 @@ class EhcoApi(object):
             url = self.WEBAPI_URL+uri
             res = self.session_pool.post(
                 url, params=payload, json=raw_data, timeout=10)
+            time.sleep(0.005)
             try:
                 data = res.json()
             except Exception:
                 if res:
-                    logging.error("Error data:{}".format(res.text))
+                    logging.error('接口返回值格式错误: {}'.format(res.text))
                 return []
             if data['ret'] == -1:
-                logging.error("Error data:{}".format(res.text))
-                logging.error("request {} error!wrong ret!".format(uri))
+                logging.error("接口返回值不正确:{}".format(res.text))
+                logging.error("请求头：{}".format(uri))
                 return []
             return data['data']
         except Exception:
             import traceback
             trace = traceback.format_exc()
             logging.error(trace)
-            raise Exception('network issue or server error!')
+            raise Exception(
+                '网络问题，请保证api接口地址设置正确！当前接口地址：{}'.format(self.WEBAPI_URL))
 
     def close(self):
         self.session_pool.close()
@@ -316,14 +320,15 @@ class WebTransfer(object):
         '''
         拉取符合要求的用户信息
         '''
-        api = EhcoApi()
+        global webapi
+        # api = EhcoApi()
         node_id = get_config().NODE_ID
 
         # 获取节点流量比例信息
-        nodeinfo = api.getApi('/nodes/{}'.format(node_id))
+        nodeinfo = webapi.getApi('/nodes/{}'.format(node_id))
         if not nodeinfo:
             logging.warn(
-                '没有查询到满足要求的节点，请检查自己的node_id!,或者该节点流量已经用光')
+                '没有查询到满足要求的节点，请检查自己的node_id!,或者该节点流量已经用光,当前节点ID:{}'.format(node_id))
             rows = []
             return rows
 
@@ -333,10 +338,9 @@ class WebTransfer(object):
         for column in range(len(nodeinfo)):
             node_info_dict[node_info_keys[column]] = nodeinfo[column]
         self.cfg['transfer_mul'] = float(node_info_dict['traffic_rate'])
-        time.sleep(0.01)
+
         # 获取符合条件的用户信息
-        data = api.getApi('/users/nodes/{}'.format(node_id))
-        api.close()
+        data = webapi.getApi('/users/nodes/{}'.format(node_id))
         if not data:
             rows = []
             logging.warn(
@@ -346,6 +350,7 @@ class WebTransfer(object):
         return rows
 
     def update_all_user(self, dt_transfer):
+        global webapi
         node_id = get_config().NODE_ID
         update_transfer = {}
 
@@ -358,40 +363,26 @@ class WebTransfer(object):
                         id][1], 'user_id': self.port_uid_table[id]})
             update_transfer[id] = dt_transfer[id]
         if len(data) > 0:
-            api = EhcoApi()
-            api.postApi('/traffic/upload',
-                        {'node_id': node_id,
-                         'data': data})
-            api.close()
+            tarffic_data = {'node_id': node_id,
+                            'data': data}
+            webapi.postApi('/traffic/upload', tarffic_data)
 
         # 节点在线ip上报
         node_online_ip = ServerPool.get_instance().get_servers_ip_list()
         ip_data = {}
         for k, v in node_online_ip.items():
             ip_data[self.port_uid_table[k]] = v
-        if len(ip_data) > 0:
-            api = EhcoApi()
-            api.postApi('/nodes/aliveip',
-                        {'node_id': node_id,
-                         'data': ip_data})
-            api.close()
-
-        # # 节点状态上报
-        # self.api.postApi(
-        #     '/nodes/load',
-        #     {'node_id': node_id,
-        #      'uptime': str(self.uptime()),
-        #      'load': str(self.load())})
+        webapi.postApi('/nodes/aliveip',
+                       {'node_id': node_id,
+                        'data': ip_data})
 
         # 节点人数上报
-        api = EhcoApi()
         alive_user_count = len(self.onlineuser_cache)
-        api.postApi(
-            '/nodes/online',
-            {'node_id': node_id,
-             'online_user': alive_user_count,
-             'log_time': round(time.time())})
-        api.close()
+        online_data = {'node_id': node_id,
+                       'online_user': alive_user_count,
+                       'log_time': int(time.time())}
+        webapi.postApi('/nodes/online', online_data)
+
         return update_transfer
 
     def load(self):
@@ -418,12 +409,14 @@ class WebTransfer(object):
         import socket
         import time
         global db_instance
+        global webapi
         timeout = 60
         socket.setdefaulttimeout(timeout)
         last_rows = []
         db_instance = obj()
         ServerPool.get_instance()
         shell.log_shadowsocks_version()
+        webapi = EhcoApi()
 
         try:
             import resource
