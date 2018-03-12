@@ -379,8 +379,7 @@ class WebTransfer(object):
         # 节点人数上报
         alive_user_count = len(self.onlineuser_cache)
         online_data = {'node_id': node_id,
-                       'online_user': alive_user_count,
-                       'log_time': int(time.time())}
+                       'online_user': alive_user_count}
         webapi.postApi('/nodes/online', online_data)
 
         return update_transfer
