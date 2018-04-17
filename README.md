@@ -32,12 +32,14 @@ wget https://bootstrap.pypa.io/get-pip.py
 
 python get-pip.py
 
-pip install requests
+pip install -r requirements.txt
 ```
 
 * 配置接口
 
 ```sh
+# 进入脚本文件夹
+cd scripts
 
 #初始化配置
 bash initcfg.sh
