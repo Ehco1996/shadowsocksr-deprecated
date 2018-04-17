@@ -1,6 +1,7 @@
 # shadowsockesr
 ssr mod version for django-sspanel
 
+# dev 分支正在开发，线上请用master分支！
 
 ### 版本说明
 
