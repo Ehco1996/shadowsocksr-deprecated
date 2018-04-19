@@ -22,15 +22,18 @@
 # SOFTWARE.
 
 import os
-import logging
-import struct
-import time
-from shadowsocks import shell, eventloop, tcprelay, udprelay, asyncdns, common
-import threading
 import sys
+import time
+import struct
+import logging
 import traceback
+import threading
 from socket import *
-from configloader import load_config, get_config
+
+from shadowsocks import shell, eventloop, tcprelay, udprelay, asyncdns, common
+
+
+from utils.configloader import load_config, get_config
 
 
 class MainThread(threading.Thread):

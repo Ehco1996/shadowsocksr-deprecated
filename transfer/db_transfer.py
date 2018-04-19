@@ -1,14 +1,16 @@
 ﻿#!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import logging
-import time
 import sys
-from server_pool import ServerPool
+import time
+import logging
 import traceback
+
 from shadowsocks import common, shell, lru_cache, obfs
-from configloader import load_config, get_config
-import importloader
+
+from utils import importloader
+from utils.server_pool import ServerPool
+from utils.configloader import load_config, get_config
 
 switchrule = None
 db_instance = None

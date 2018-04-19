@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import time
 import sys
 import threading
@@ -27,26 +26,23 @@ class MainThread(threading.Thread):
 
 def main():
     shell.check_python()
-    if False:
-        db_transfer.DbTransfer.thread_db()
+    if get_config().API_INTERFACE == 'mudbjson':
+        thread = MainThread(db_transfer.MuJsonTransfer)
+    elif get_config().API_INTERFACE == 'ehcomod':
+        thread = MainThread(db_transfer.EhcoDbTransfer)
+    elif get_config().API_INTERFACE == 'webapi':
+        thread = MainThread(web_transfer.WebTransfer)
     else:
-        if get_config().API_INTERFACE == 'mudbjson':
-            thread = MainThread(db_transfer.MuJsonTransfer)
-        elif get_config().API_INTERFACE == 'ehcomod':
-            thread = MainThread(db_transfer.EhcoDbTransfer)
-        elif get_config().API_INTERFACE == 'webapi':
-            thread = MainThread(web_transfer.WebTransfer)
-        else:
-            print('请在userapi.py里设置正确的接口模式!')
-            sys.exit()
-        thread.start()
-        try:
-            while thread.is_alive():
-                thread.join(10.0)
-        except (KeyboardInterrupt, IOError, OSError) as e:
-            import traceback
-            traceback.print_exc()
-            thread.stop()
+        print('请在userapi.py里设置正确的接口模式!')
+        sys.exit()
+    thread.start()
+    try:
+        while thread.is_alive():
+            thread.join(10.0)
+    except (KeyboardInterrupt, IOError, OSError) as e:
+        import traceback
+        traceback.print_exc()
+        thread.stop()
 
 
 if __name__ == '__main__':

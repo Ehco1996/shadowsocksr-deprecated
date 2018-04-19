@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import importloader
+from utils import importloader
 
 g_config = None
 
@@ -8,7 +8,7 @@ g_config = None
 def load_config():
     global g_config
     g_config = importloader.loads(
-        ['configs/userapiconfig', 'confings/apiconfig'])
+        ['configs.userapiconfig', 'config.sapiconfig'])
 
 
 def get_config():
@@ -16,5 +16,3 @@ def get_config():
 
 
 load_config()
-
-print(g_config)
