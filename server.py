@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import time
 import sys
 import threading
@@ -6,8 +8,9 @@ import os
 from shadowsocks import shell
 
 from utils import server_pool
-from transfer import web_transfer,db_transfer
-from utils.configloader import load_config, get_config
+from transfer import web_transfer, db_transfer
+from utils.configloader import get_config
+
 
 class MainThread(threading.Thread):
     def __init__(self, obj):
