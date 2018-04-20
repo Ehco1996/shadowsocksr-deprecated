@@ -2,22 +2,24 @@
 # -*- coding: UTF-8 -*-
 import os
 import sys
-from os.path import abspath, dirname
+import importlib
 
+from os.path import abspath, dirname
 path = dirname((abspath(dirname(__file__))))
 sys.path.insert(0, path)
 
 
 def load(name):
     try:
-        obj = __import__(name)
+        # python2
+        obj = importlib.import_module(name)
         reload(obj)
         return obj
     except:
         pass
 
     try:
-        import importlib
+        # python3
         obj = importlib.import_module(name)
         importlib.reload(obj)
         return obj
