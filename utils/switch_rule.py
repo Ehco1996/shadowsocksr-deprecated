@@ -1,5 +1,3 @@
-from configloader import load_config, get_config
-
 
 def getKeys(key_list):
     return key_list

@@ -22,7 +22,7 @@ NODE_ID = 1
 
 
 # Mysql
-MYSQL_CONFIG = 'usermysql.json'
+MYSQL_CONFIG = 'configs/usermysql.json'
 
 # MUJSON API
 MUAPI_CONFIG = 'usermuapi.json'

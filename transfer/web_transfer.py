@@ -1,87 +1,20 @@
 # -*- coding: UTF-8 -*-
 '''
-Web api for django-sspanel
+Web Transfer for django-sspanel
 '''
 
 import sys
 import time
+import json
 import logging
 import traceback
 from datetime import datetime
 
-import requests
 from shadowsocks import common, shell, lru_cache, obfs
 
-from utils import importloader
+from utils.web_tools import EhcoApi
 from utils.server_pool import ServerPool
-from utils.configloader import load_config, get_config
-
-
-class EhcoApi(object):
-    '''
-    提供发送get/post的抽象类
-    '''
-
-    def __init__(self):
-        self.session_pool = requests.Session()
-        self.TOKEN = get_config().TOKEN
-        self.WEBAPI_URL = get_config().WEBAPI_URL
-
-    def getApi(self, uri):
-        res = None
-        try:
-            payload = {'token': self.TOKEN}
-            url = self.WEBAPI_URL+uri
-            res = self.session_pool.get(url, params=payload, timeout=10)
-            time.sleep(0.005)
-            try:
-                data = res.json()
-            except Exception:
-                if res:
-                    logging.error('接口返回值格式错误: {}'.format(res.text))
-                return []
-
-            if data['ret'] == -1:
-                logging.error("接口返回值不正确:{}".format(res.text))
-                logging.error("请求头：{}".format(uri))
-                return []
-            return data['data']
-
-        except Exception:
-            import traceback
-            trace = traceback.format_exc()
-            logging.error(trace)
-            raise Exception(
-                '网络问题，请保证api接口地址设置正确！当前接口地址：{}'.format(self.WEBAPI_URL))
-
-    def postApi(self, uri, raw_data={}):
-        res = None
-        try:
-            payload = {'token': self.TOKEN}
-            url = self.WEBAPI_URL+uri
-            res = self.session_pool.post(
-                url, params=payload, json=raw_data, timeout=10)
-            time.sleep(0.005)
-            try:
-                data = res.json()
-            except Exception:
-                if res:
-                    logging.error('接口返回值格式错误: {}'.format(res.text))
-                return []
-            if data['ret'] == -1:
-                logging.error("接口返回值不正确:{}".format(res.text))
-                logging.error("请求头：{}".format(uri))
-                return []
-            return data['data']
-        except Exception:
-            import traceback
-            trace = traceback.format_exc()
-            logging.error(trace)
-            raise Exception(
-                '网络问题，请保证api接口地址设置正确！当前接口地址：{}'.format(self.WEBAPI_URL))
-
-    def close(self):
-        self.session_pool.close()
+from utils.configloader import load_config, get_config, get_switch_rule
 
 
 class WebTransfer(object):
@@ -90,7 +23,7 @@ class WebTransfer(object):
         self.event = threading.Event()
         self.start_time = time.time()
         self.cfg = {}
-        self.load_cfg()  # 载入流量比例设置
+        self.load_cfg()  # 之后删掉
 
         self.last_get_transfer = {}  # 上一次的实际流量
         self.last_update_transfer = {}  # 上一次更新到的流量（小于等于实际流量）
@@ -101,12 +34,10 @@ class WebTransfer(object):
         self.mu_ports = {}
 
     def load_cfg(self):
-        import json
         config_path = get_config().MYSQL_CONFIG
         cfg = None
         with open(config_path, 'rb+') as f:
             cfg = json.loads(f.read().decode('utf8'))
-
         if cfg:
             self.cfg.update(cfg)
 
@@ -163,11 +94,13 @@ class WebTransfer(object):
         self.force_update_transfer = set()
 
     def del_server_out_of_bound_safe(self, last_rows, rows):
-        # 停止超流量的服务
-        # 启动没超流量的服务
-        # 停止等级不足的服务
+        '''
+        停止超流量的服务
+        启动没超流量的服务
+        停止等级不足的服务
+        '''
         try:
-            switchrule = importloader.load('switchrule')
+            switchrule = get_switch_rule()
         except Exception as e:
             logging.error('load switchrule.py fail')
         cur_servers = {}
@@ -331,6 +264,7 @@ class WebTransfer(object):
                 '没有查询到满足要求的节点，请检查自己的node_id!,或者该节点流量已经用光,当前节点ID:{}'.format(node_id))
             rows = []
             return rows
+        logging.info('节点id: {} 流量比例: {}'.format(node_id, nodeinfo[0]))
 
         # 流量比例设置
         node_info_keys = ['traffic_rate', ]
@@ -434,6 +368,7 @@ class WebTransfer(object):
                     if rows:
                         db_instance.pull_ok = True
                         config = shell.get_config(False)
+                        # 单端口多用户的支持
                         for port in config['additional_ports']:
                             val = config['additional_ports'][port]
                             val['port'] = int(port)
@@ -445,11 +380,11 @@ class WebTransfer(object):
                                 val["passwd"] = val["password"]
                             rows.append(val)
                     db_instance.del_server_out_of_bound_safe(last_rows, rows)
+
                     last_rows = rows
                 except Exception as e:
                     trace = traceback.format_exc()
                     logging.error(trace)
-                    # logging.warn('db thread except:%s' % e)
                 if db_instance.event.wait(get_config().UPDATE_TIME) or not ServerPool.get_instance().thread.is_alive():
                     break
         except KeyboardInterrupt as e:

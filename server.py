@@ -33,7 +33,7 @@ def main():
     elif get_config().API_INTERFACE == 'webapi':
         thread = MainThread(web_transfer.WebTransfer)
     else:
-        print('请在userapi.py里设置正确的接口模式!')
+        print('请设置正确的接口模式!')
         sys.exit()
     thread.start()
     try:
