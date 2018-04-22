@@ -23,7 +23,6 @@ class WebTransfer(object):
         self.event = threading.Event()
         self.start_time = time.time()
         self.cfg = {}
-        self.load_cfg()  # 之后删掉
 
         self.last_get_transfer = {}  # 上一次的实际流量
         self.last_update_transfer = {}  # 上一次更新到的流量（小于等于实际流量）
@@ -34,12 +33,7 @@ class WebTransfer(object):
         self.mu_ports = {}
 
     def load_cfg(self):
-        config_path = get_config().MYSQL_CONFIG
-        cfg = None
-        with open(config_path, 'rb+') as f:
-            cfg = json.loads(f.read().decode('utf8'))
-        if cfg:
-            self.cfg.update(cfg)
+        pass
 
     def push_db_all_user(self):
         if self.pull_ok is False:
@@ -293,8 +287,9 @@ class WebTransfer(object):
         for id in dt_transfer.keys():
             if dt_transfer[id][0] == 0 and dt_transfer[id][1] == 0:
                 continue
-            data.append({'u': dt_transfer[id][0], 'd': dt_transfer[
-                        id][1], 'user_id': self.port_uid_table[id]})
+            data.append({'u': dt_transfer[id][0] * self.cfg['transfer_mul'],
+                         'd': dt_transfer[id][1] * self.cfg['transfer_mul'],
+                         'user_id': self.port_uid_table[id]})
             update_transfer[id] = dt_transfer[id]
         if len(data) > 0:
             tarffic_data = {'node_id': node_id,
