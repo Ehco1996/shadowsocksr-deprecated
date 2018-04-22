@@ -36,6 +36,9 @@ class WebTransfer(object):
         pass
 
     def push_db_all_user(self):
+        '''
+        记录用户流量数据
+        '''
         if self.pull_ok is False:
             return
         # 更新用户流量到数据库
@@ -114,15 +117,17 @@ class WebTransfer(object):
             if hasattr(passwd, 'encode'):
                 passwd = passwd.encode('utf-8')
             cfg = {'password': passwd}
+            # 建立端口和用户id的对应关系
             if 'id' in row:
                 self.port_uid_table[row['port']] = row['id']
 
             read_config_keys = ['method', 'obfs', 'obfs_param', 'protocol', 'protocol_param',
                                 'forbidden_ip', 'forbidden_port', 'speed_limit_per_con', 'speed_limit_per_user']
+            # 写每个用户的配置文件
             for name in read_config_keys:
                 if name in row and row[name]:
                     cfg[name] = row[name]
-
+            # 编码每个配置项
             merge_config_keys = ['password'] + read_config_keys
             for name in cfg.keys():
                 if hasattr(cfg[name], 'encode'):
@@ -132,6 +137,7 @@ class WebTransfer(object):
                         logging.warning(
                             'encode cfg key "{}" fail, val "{}"'.format(name, cfg[name]))
 
+            # 更新正在运行的server
             if port not in cur_servers:
                 cur_servers[port] = passwd
             else:
@@ -139,11 +145,11 @@ class WebTransfer(object):
                     'more than one user use the same port [{}]'.format(port,))
                 continue
 
+            # 更新单端口多用户
             if 'protocol' in cfg and 'protocol_param' in cfg and common.to_str(cfg['protocol']) in obfs.mu_protocol():
                 if '#' in common.to_str(cfg['protocol_param']):
                     mu_servers[port] = passwd
                     allow = True
-
             if allow:
                 if port not in mu_servers:
                     allow_users[port] = cfg
@@ -375,7 +381,6 @@ class WebTransfer(object):
                                 val["passwd"] = val["password"]
                             rows.append(val)
                     db_instance.del_server_out_of_bound_safe(last_rows, rows)
-
                     last_rows = rows
                 except Exception as e:
                     trace = traceback.format_exc()
