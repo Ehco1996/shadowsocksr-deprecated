@@ -613,7 +613,7 @@ class EhcoDbTransfer(DbTransfer):
         node_info_keys = ['traffic_rate', 'level']
         try:
             sql = "SELECT " + \
-                ','.join(node_info_keys) + " FROM ss_node where `id`='" + \
+                ','.join(node_info_keys) + " FROM ss_node where `node_id`='" + \
                 str(self.cfg["node_id"]) + "'"
             cur.execute(sql)
             nodeinfo = cur.fetchone()
@@ -638,8 +638,7 @@ class EhcoDbTransfer(DbTransfer):
         cur = conn.cursor()
         try:
             rows = []
-            # 增加用户等级判断
-            # 只适用于django-sspanel
+            # 节点等级判断
             sql = "SELECT " + \
                 ','.join(keys) + " FROM user WHERE `level` >=" + \
                 str(node_info_dict['level'])
