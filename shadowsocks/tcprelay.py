@@ -1312,6 +1312,9 @@ class TCPRelay(object):
         return (self.server_user_transfer_ul.copy(), self.server_user_transfer_dl.copy())
 
     def _update_users(self, protocol_param, acl):
+        '''
+        单端口多用户支持
+        '''
         if protocol_param is None:
             protocol_param = self._config['protocol_param']
         param = common.to_bytes(protocol_param).split(b'#')
@@ -1336,14 +1339,16 @@ class TCPRelay(object):
 
     def update_users(self, users):
         for uid in list(self.server_users.keys()):
-            id = struct.unpack('<I', uid)[0]
-            if id not in users:
+            user_port = struct.unpack('<I', uid)[0]
+            if user_port not in users:
                 self.del_user(uid)
-        for id in users:
-            uid = struct.pack('<I', id)
-            self.add_user(uid, users[id])
+        for user_port in users:
+            uid = struct.pack('<I', user_port)
+            cfg = users[user_port]
+            self.add_user(uid, cfg)
 
-    def add_user(self, uid, cfg):  # user: binstr[4], passwd: str
+    # user: binstr[4], passwd: str , uid:binstr(1234:user_port)
+    def add_user(self, uid, cfg):
         passwd = cfg['password']
         self.server_users[uid] = common.to_bytes(passwd)
         self.server_users_cfg[uid] = cfg

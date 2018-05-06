@@ -290,6 +290,7 @@ class WebTransfer(object):
 
         # 用户流量上报
         data = []
+        # print('dt_transfer.keys()', dt_transfer)
         for id in dt_transfer.keys():
             if dt_transfer[id][0] == 0 and dt_transfer[id][1] == 0:
                 continue
@@ -303,9 +304,11 @@ class WebTransfer(object):
             webapi.postApi('/traffic/upload', tarffic_data)
 
         # 节点在线ip上报
-        node_online_ip = ServerPool.get_instance().get_servers_ip_list()
+        node_online_ip_list = ServerPool.get_instance().get_servers_ip_list()
         ip_data = {}
-        for k, v in node_online_ip.items():
+        for k, v in node_online_ip_list.items():
+            if k not in self.port_uid_table:
+                continue
             ip_data[self.port_uid_table[k]] = v
         webapi.postApi('/nodes/aliveip',
                        {'node_id': node_id,
