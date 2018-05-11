@@ -666,9 +666,10 @@ class TCPRelayHandler(object):
             else:
                 common.connect_log('TCP request %s:%d by user %d' %
                                    (common.to_str(remote_addr), remote_port, self._user_id))
+            # print('self.user', server_info.__dict__, self._client_address)
             # 加入ip地址检测
             self._server.ip_list.append(self._client_address[0])
-
+            # 目标网站地址和端口
             self._remote_address = (common.to_str(remote_addr), remote_port)
             self._remote_udp = (connecttype != 0)
             # pause reading
@@ -1541,8 +1542,6 @@ class TCPRelay(object):
         ret = []
         for ip in self.ip_list[:]:
             ret.append(ip.replace('::ffff:', ''))
-        del self.ip_list
-        self.ip_list = []
         return list(set(ret))
 
     def close(self, next_tick=False):

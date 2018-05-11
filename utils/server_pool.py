@@ -318,6 +318,7 @@ class ServerPool(object):
         for port in servers:
             server = servers[port]
             ip_list = server.get_ip_address()
+            # print('ip)list', ip_list)
             _ = []
             ret[port] = _
             for ip in ip_list:
