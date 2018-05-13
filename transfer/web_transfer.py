@@ -291,12 +291,14 @@ class WebTransfer(object):
         # 用户流量上报
         data = []
         # print('dt_transfer.keys()', dt_transfer)
-        for id in dt_transfer.keys():
-            if dt_transfer[id][0] == 0 and dt_transfer[id][1] == 0:
+        for port in dt_transfer.keys():
+            if port not in dt_transfer.keys():
                 continue
-            data.append({'u': dt_transfer[id][0] * self.cfg['transfer_mul'],
-                         'd': dt_transfer[id][1] * self.cfg['transfer_mul'],
-                         'user_id': self.port_uid_table[id]})
+            elif dt_transfer[port][0] == 0 and dt_transfer[port][1] == 0:
+                continue
+            data.append({'u': dt_transfer[port][0] * self.cfg['transfer_mul'],
+                         'd': dt_transfer[port][1] * self.cfg['transfer_mul'],
+                         'user_id': self.port_uid_table[port]})
             update_transfer[id] = dt_transfer[id]
         if len(data) > 0:
             tarffic_data = {'node_id': node_id,
