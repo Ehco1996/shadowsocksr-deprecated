@@ -299,7 +299,7 @@ class WebTransfer(object):
             data.append({'u': dt_transfer[port][0] * self.cfg['transfer_mul'],
                          'd': dt_transfer[port][1] * self.cfg['transfer_mul'],
                          'user_id': self.port_uid_table[port]})
-            update_transfer[id] = dt_transfer[id]
+            update_transfer[port] = dt_transfer[port]
         if len(data) > 0:
             tarffic_data = {'node_id': node_id,
                             'data': data}
