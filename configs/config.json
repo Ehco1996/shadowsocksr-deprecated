@@ -21,8 +21,8 @@
             "obfs": "tls1.2_ticket_auth",
             "obfs_param": ""
         }
-    }, // only works under multi-user mode
-    "additional_ports_only": false, // only works under multi-user mode
+    },
+    "additional_ports_only": false, // 只允许单端口多用户
     "timeout": 120,
     "udp_timeout": 60,
     "dns_ipv6": false,
