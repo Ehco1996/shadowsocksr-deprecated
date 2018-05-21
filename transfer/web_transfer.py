@@ -292,7 +292,7 @@ class WebTransfer(object):
         data = []
         # print('dt_transfer.keys()', dt_transfer)
         for port in dt_transfer.keys():
-            if port not in dt_transfer.keys():
+            if (port not in dt_transfer.keys()) or (prot not in self.port_uid_table.keys()):
                 continue
             elif dt_transfer[port][0] == 0 and dt_transfer[port][1] == 0:
                 continue
