@@ -8,7 +8,7 @@ ssr mod version for django-sspanel
 改版ssr在原版的基础上加了点小功能
 并且只对django——sspanel进行支持和维护
 
->django-sspanel 是我开发的面板  
+>django-sspanel 是我开发的面板
 >项目地址：https://github.com/Ehco1996/django-sspanel
 
 * 节点流量日志上报
@@ -16,8 +16,6 @@ ssr mod version for django-sspanel
 * webapi mode  （推荐）
 * ehcomod mode （直连mysql）
 * 兼容Python2/3
-
-
 
 ### 安装教程
 
@@ -69,28 +67,22 @@ UPDATE_TIME = 75
 **下面是默认配置（走webapi）**
 
 ```python
-import base64
-# Config
-# API_INTERFACE = 'ehcomod'  # ehcomod <谜之屋专用> # webapi
-API_INTERFACE = 'webapi'  # ehcomod <谜之屋专用> # webapi
-UPDATE_TIME = 75
+# API_INTERFACE = 'ehcomod'  # ehcomod <谜之屋专用>
+API_INTERFACE = 'webapi'  # webapi <谜之屋专用>
+UPDATE_TIME = 10
+
 # Webapi token
-USERNAME = 'ehco'
-PORT = 2345
-try:
-    TOKEN = base64.b64encode(
-        bytes('{}+{}'.format(USERNAME, PORT), 'utf8')).decode()
-except:
-    TOKEN = base64.b64encode(
-        bytes('{}+{}'.format(USERNAME, PORT))).decode()
-WEBAPI_URL = 'https:www.xxx.com/api'
-NODE_ID = 13
+TOKEN = "you own token"
+
+WEBAPI_URL = 'http://127.0.0.1:8000/api'
+NODE_ID = 1
+
 # Mysql
-MYSQL_CONFIG = 'usermysql.json'
+MYSQL_CONFIG = 'configs/usermysql.json'
+
 # MUJSON API
 MUAPI_CONFIG = 'usermuapi.json'
 SERVER_PUB_ADDR = '127.0.0.1'  # mujson_mgr need this to generate ssr link
-
 ```
 
 ### 基本使用命令
