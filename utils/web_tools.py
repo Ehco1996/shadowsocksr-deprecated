@@ -51,7 +51,7 @@ class EhcoApi(object):
             payload = {'token': self.TOKEN}
             url = self.WEBAPI_URL+uri
             res = self.session_pool.post(
-                url, params=payload, json=raw_data, timeout=10)
+                url, data=payload, json=raw_data, timeout=10)
             time.sleep(0.005)
             try:
                 data = res.json()
