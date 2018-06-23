@@ -4,6 +4,7 @@ import time
 import logging
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from utils.configloader import load_config, get_config
 
@@ -15,6 +16,7 @@ class EhcoApi(object):
 
     def __init__(self):
         self.session_pool = requests.Session()
+        self.session_pool.mount('', HTTPAdapter(max_retries=3))
         self.TOKEN = get_config().TOKEN
         self.WEBAPI_URL = get_config().WEBAPI_URL
 
