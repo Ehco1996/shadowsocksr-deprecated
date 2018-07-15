@@ -267,11 +267,7 @@ class WebTransfer(object):
         logging.info('节点id: {} 流量比例: {}'.format(node_id, nodeinfo[0]))
 
         # 流量比例设置
-        node_info_keys = ['traffic_rate', ]
-        node_info_dict = {}
-        for column in range(len(nodeinfo)):
-            node_info_dict[node_info_keys[column]] = nodeinfo[column]
-        self.cfg['transfer_mul'] = float(node_info_dict['traffic_rate'])
+        self.cfg['transfer_mul'] = float(nodeinfo[0])
 
         # 获取符合条件的用户信息
         data = webapi.getApi('/users/nodes/{}'.format(node_id))
