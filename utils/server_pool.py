@@ -317,11 +317,11 @@ class ServerPool(object):
         ret = {}
         for port in servers:
             server = servers[port]
-            ip_list = server.get_ip_address()
             ret[port] = list()
+            ip_list = server.get_ip_address()
+            # filter ip head
+            seen = []
             for ip in ip_list:
-                # filter ip head
-                seen = []
                 ip_head = ip.split('.')[0]
                 if ip_head not in seen:
                     seen.append(ip_head)
