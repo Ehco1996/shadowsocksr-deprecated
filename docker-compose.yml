@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  ssr:
+    container_name : shadowsocksr
+    build: .
+    image: shadowsocksr
+    network_mode: host
+    restart: always
+    volumes:
+      - .:/src/shadowsocksr
+    working_dir: /src/shadowsocksr
+    command: python server.py
